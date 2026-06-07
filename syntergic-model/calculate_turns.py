@@ -16,7 +16,7 @@ class DummyField:
     def get_operator(self):
         return self.op
 
-def run_headless_sim(start_agents=100, max_steps=100):
+def run_headless_sim(start_agents=100, max_steps=1000):
     print(f"Starting Integrated Lattice/Swarm simulation with {start_agents} agents.")
     
     lattice = Lattice(size=100, dimensions=2)
@@ -45,4 +45,4 @@ def run_headless_sim(start_agents=100, max_steps=100):
     print(f"Simulation ended after {max_steps} turns with {active} agents.")
 
 if __name__ == "__main__":
-    run_headless_sim(start_agents=100, max_steps=100)
+    run_headless_sim(start_agents=100, max_steps=1000)

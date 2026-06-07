@@ -32,3 +32,9 @@ Hermes successfully ingested the synced directory and validated the architectura
 1. **Conway's Game of Life Physics:** Parameterized the Cellular Automaton rules to support configurable `birth_rules` and `survival_rules`. Defaulted to the classic Game of Life (`B3/S23`) to naturally produce **Class 4** emergent complexity and edge-of-chaos patterns.
 2. **SciPy Vectorization:** Rewrote the `_count_neighbors()` method in the Lattice to use `scipy.signal.convolve2d` with toroidal (`wrap`) boundary conditions. This eliminates slow nested Python loops, making the simulation nearly instantaneous on a 100x100 grid.
 3. **Verification:** Executed a 50-turn headless simulation. The "Reality Variance" successfully tracks the dynamic interference as Swarm agents ride the ripples of the new Game of Life gliders and oscillators.
+
+### Update: 2026-06-07 15:54 PDT - Symmetric Resonance Gravity & Deep-Time Emergence
+
+1. **Symmetric Resonance Gravity:** Rewrote `Swarm.step()` in `multi_agent.py` to calculate gravitational pull based on computational similarity. Macro-agents now actively seek out other agents of the exact same size and frequency ("like-seeks-like" aggregation), replacing the old mass-based gravity model.
+2. **Visual Tracking:** Upgraded `simulation.ipynb` to overlay scatter plots on the Swarm Field. Agent markers are now sized by `radius**2` and colored by `frequency`, allowing visual tracking of hierarchical evolution.
+3. **Long-Term Evolution:** Based on Hermes' analysis that true neural cell morphology requires thousands of interactions to stabilize over the Class 4 Lattice, the simulation length (`NUM_STEPS`) was increased to `1000` steps, and the animation delay was reduced to `0.01` to facilitate observing deep-time emergence.
