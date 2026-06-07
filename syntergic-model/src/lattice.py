@@ -5,7 +5,8 @@ class Lattice:
     Represents the Holographic Lattice (Pre-space Matrix) as a Cellular Automaton.
     It evolves based on simple rules, generating complex patterns.
     """
-    def __init__(self, size: int = 100, dimensions: int = 2, initial_density: float = 0.1):
+    def __init__(self, size: int = 100, dimensions: int = 2, initial_density: float = 0.1,
+                 birth_rules=(3,), survival_rules=(2, 3)):
         """
         Initialize the Lattice as a Cellular Automaton.
         
@@ -13,6 +14,8 @@ class Lattice:
             size (int): The number of nodes along each dimension.
             dimensions (int): The dimensionality of the lattice.
             initial_density (float): Density of '1's in the initial random state (0.0 to 1.0).
+            birth_rules (tuple): Number of neighbors required for a dead cell to become alive.
+            survival_rules (tuple): Number of neighbors required for a living cell to survive.
         """
         if dimensions != 2:
             raise ValueError("Currently, only 2D cellular automata are supported for the Lattice.")
@@ -20,49 +23,35 @@ class Lattice:
         self.size = size
         self.dimensions = dimensions
         self.shape = tuple([size] * dimensions)
+        self.birth_rules = birth_rules
+        self.survival_rules = survival_rules
         
         # Initialize the CA matrix with binary states (0 or 1)
         self.matrix = (np.random.rand(*self.shape) < initial_density).astype(int)
 
     def _count_neighbors(self):
-        """Counts active neighbors for each cell in a 2D grid (Moore neighborhood)."""
-        neighbors = np.zeros(self.shape, dtype=int)
-        for i in range(self.size):
-            for j in range(self.size):
-                # Iterate over 3x3 neighborhood
-                for dx in [-1, 0, 1]:
-                    for dy in [-1, 0, 1]:
-                        if dx == 0 and dy == 0:
-                            continue # Don't count self
-                        
-                        nx, ny = (i + dx) % self.size, (j + dy) % self.size # Toroidal wrapping
-                        neighbors[i, j] += self.matrix[nx, ny]
-        return neighbors
+        """Counts active neighbors for each cell in a 2D grid using fast convolution."""
+        from scipy.signal import convolve2d
+        kernel = np.array([[1, 1, 1],
+                           [1, 0, 1],
+                           [1, 1, 1]])
+        # Use mode='same' to keep matrix size, boundary='wrap' for toroidal topology
+        return convolve2d(self.matrix, kernel, mode='same', boundary='wrap')
 
     def evolve(self, num_steps: int = 1):
         """
         Evolves the cellular automaton for a given number of steps.
-        Rule:
-            - A living cell (1) with exactly 1 active neighbor dies (turns 0).
-            - A dead cell (0) with exactly 2 active neighbors becomes alive (turns 1).
-            - All other cells maintain their state.
-            This is a very simple custom rule, not Conway's Game of Life.
+        Uses the configured birth and survival rules. Default is B3/S23 (Game of Life)
+        which is known for yielding Class 4 complex emergent structures.
         """
         for _ in range(num_steps):
-            new_matrix = self.matrix.copy()
             neighbors = self._count_neighbors()
-
-            for i in range(self.size):
-                for j in range(self.size):
-                    cell_state = self.matrix[i, j]
-                    neighbor_count = neighbors[i, j]
-
-                    if cell_state == 1 and neighbor_count == 1:
-                        new_matrix[i, j] = 0  # Dies with exactly 1 neighbor
-                    elif cell_state == 0 and neighbor_count == 2:
-                        new_matrix[i, j] = 1  # Becomes alive with exactly 2 neighbors
-                    # Else: state remains unchanged
-            self.matrix = new_matrix
+            
+            # Apply rules using fast numpy boolean indexing
+            birth = np.isin(neighbors, self.birth_rules) & (self.matrix == 0)
+            survive = np.isin(neighbors, self.survival_rules) & (self.matrix == 1)
+            
+            self.matrix = (birth | survive).astype(int)
 
     def get_state(self):
         """

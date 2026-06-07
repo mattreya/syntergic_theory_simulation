@@ -42,7 +42,7 @@ class Swarm:
         """
         active_agents = [a for a in self.agents if a.active]
         
-        # 1. Empathy Gravity (Transferred Potential)
+        # 1. Symmetric Resonance Gravity (Transferred Potential)
         for agent in active_agents:
             best_target = None
             max_pull = 0.0
@@ -50,16 +50,24 @@ class Swarm:
             for other in active_agents:
                 if agent is other: continue
                 
-                # Check if they are empathetic (resonant frequencies)
-                freq_diff = abs(agent.frequency - other.frequency)
-                if freq_diff < freq_tolerance:
-                    dist = np.sqrt((agent.x - other.x)**2 + (agent.y - other.y)**2)
-                    if dist > 0:
-                        # Gravity formula: proportional to size/coherence, inversely proportional to distance squared
-                        pull = (other.radius * other.coherence) / (dist**2)
-                        if pull > max_pull:
-                            max_pull = pull
-                            best_target = other
+                dist = np.sqrt((agent.x - other.x)**2 + (agent.y - other.y)**2)
+                if dist > 0:
+                    # Calculate resonance (similarity in size and frequency)
+                    # We add a small epsilon to avoid division by zero
+                    size_diff = abs(agent.radius - other.radius)
+                    freq_diff = abs(agent.frequency - other.frequency)
+                    
+                    # Resonance peaks at 1.0 when identical
+                    size_resonance = 1.0 / (1.0 + size_diff)
+                    freq_resonance = 1.0 / (1.0 + freq_diff)
+                    
+                    # Gravity formula: proportional to symmetric resonance and target's coherence
+                    # inversely proportional to distance squared
+                    pull = (size_resonance * freq_resonance * other.coherence) / (dist**2)
+                    
+                    if pull > max_pull:
+                        max_pull = pull
+                        best_target = other
                             
             if best_target:
                 # Calculate directional vector
